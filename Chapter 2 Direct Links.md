@@ -160,3 +160,37 @@ Upstream traffic is time-division multiplexed, where each ONU periodically gets 
 Like Wi-Fi, cellular networks transmit data at certain bandwidths in the radio spectrum.
 
 Traditional cellular technologies range from 700-MHz o 2400 MHz. 
+
+Like 802.11, cellular technology relies on base stations connected to a wired network, often called *Broadcast Base Units (BBU)*, and the mobile devices connected to them are usually referred to as *User Equipment (UE)*, ad the set of BBUs are anchored at an *Evolved Packet Core (EPC)* hoseted in a central offfice. The wireless network served by the EPC is often called a *Radio Access Netword (RAN)*. 
+
+BBUs officially go by another name - Evolved NodeB (eNodeB or eNB) 
+![[Pasted image 20250128113722.png]]
+
+The above figure shows one possible configuration of the end-to-end scenario. 
+
+The geographic area served by a BBU's antenna is called a *cell*. A BBU could serve a single cell or use mulitple directional antennas to serve multiple cells. Cells can overlap, thus causing a user to communication with more than one cell. At the same time, the UE can only be under the control on one BBU. As the device leaves once cell and goes to another, BBUs seize and cease control according to that of the strongest signal. If the device is involved in a call or other network session at the time, the session must be transferred to the new base station in what is called a *handoff*. 
+
+There have been multiple generation of protocols implementing the cellular network, known as 1G, 2G, 3G, and so on. 
+
+As of 3F, the generational designation actually corresponds to a standard defined by the 3GPP (3rd Generation Partnership Project), and the 3GPP continue to define the standard for 4G and 5G. 
+
+The sequence of releases and generations is called LTE (*Long-Term Evolution*), and the industry as a whole has been on a fairly well-defined evolution path known as LTE. 
+
+The main innovation of LTE is how it allocation the available radio spectrum to UEs. The difference between LTE's strategy and WiFi's strategy in this regard is bases off an assumption about utilization. Wi-Fi assumes a lightly loaded network (and thus optimistically transmits when the link is idle) while cellular assumes high utilization (explitly assigning different users to different shares of the available radio spectrum).
+
+The mechanism for LTE is called *Orthogonal Frequency Division Multiple Access (OFDMA)*. The idea is to multiplex data over a set of 12 orthogonal subcarrier frequencies, each modulated independently. The "Multiple" Access implies that data can be simultaneously sent on behalf of multiple users, each on a different frequency for a different duration of time. 
+
+OFDMA leads to conceptualizing the radio spectrum as a two-dimensional resource. 
+![[Pasted image 20250128120200.png]]
+
+A scheduler makes allocation decisions at the granularity of blocks of 7x12=84 resource elements, called a *Physical Resource Block*. 
+
+The 1ms *Transmission Time Interval (TTI)* corresponds to the time frame in which the BBU received feedback from UEs about the quality of the signal they are expecting. The *Channel Quality Indicator (CQI)* reports the observed signal-to-noise ratio. The base station uses this informatio to adapt how it allocates the available radio spectrum to the UEs its serving. 
+
+This description of sceduling radio spectrum is specific to 4G. Transitioning from 4G to 5G introduces additional degrees-of-freedom in how the radio spectrum is scheduled. 
+
+# Perspective: Race to the Edge
+
+Softwarization is radically transforming the network. Meany of the fiber-to-the-home and cellular networks described are from complex hardware appliances that have a bundled set of functionality, making them slow to change. 
+
+In response, network operators are transitioning to appliean with open software running on commodity services, switches, and access devices. This initiative is called CORD. 
