@@ -55,7 +55,8 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical"
+                "sortOrder": "alphabetical",
+                "autoReveal": false
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -179,8 +180,13 @@
   },
   "active": "f930c6f01fafa90f",
   "lastOpenFiles": [
+    "Pasted image 20250203115126.png",
+    "Pasted image 20250203114125.png",
     "Chapter 2 Direct Links.md",
     "Chapter 3 Internetworking.md",
+    "Pasted image 20250203112346.png",
+    "Pasted image 20250203112328.png",
+    "Pasted image 20250203111503.png",
     "Pasted image 20250128120200.png",
     "Pasted image 20250128113722.png",
     "assets/Computer Networks.pdf",
@@ -188,10 +194,6 @@
     "assets/Pasted image 20250127120910.png",
     "assets/Pasted image 20250127114644.png",
     "assets/Pasted image 20250127113548.png",
-    "assets/Pasted image 20250127111619.png",
-    "assets/Pasted image 20250127112826.png",
-    "assets/Pasted image 20250127111733.png",
-    "assets/Pasted image 20250123111637.png",
     "assets",
     "Welcome.md"
   ]
