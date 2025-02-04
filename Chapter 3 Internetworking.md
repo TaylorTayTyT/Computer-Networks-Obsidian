@@ -72,3 +72,41 @@ There are several things to note about virtual circuit switching:
 - routing has been largely ignored in this scenario 
 
 ## Asynchronous Transfer Mode
+
+Asynchronous Transfer Mode (ATM) became an important technology in the 1980s and early 1990s, and was seen as a competitor to Ethernet switching and IP. 
+
+![[Pasted image 20250204110708.png]]
+We skip the discussing the GFC because it never saw much use. The VPI and VCI combine to become a virtual circuit identifier, split to allow for a level of hierarchy. WE skip to the CRC header byte known as the *header error check* (HEC). This provides error detection capability on the cell header only. 
+
+
+The most significant thing to notice about the ATM cell is rereason it is called a cell and not a packet. This is because it only has o ne size - 53 bytes. One reason for this is to facilitate the implementation of hardware switches. Ficed-length packets turn out to be very helpful if you want to build fast, highly scalable switches. There are too main reasons for this: 
+1. It's easier to build hardware with simple jobs, and processing packets is easier if you know how long each one is
+2. If all packets have the same length, you can have lots of switching element all doing the same thing in parallel. 
+
+Another good argument for ATM has to do with end-to-end latency. ATM was meant for voice calls and data. Because voiec is low bandwith but has strict delay requirements, you dont want it to be stuck behind a large data packet. Hence, if you force all packets to be cells, then large data can still be served and voice packets can be interweaved in. This idea is still alive and well today in cellular access networks. 
+
+How long should ficed length packets be? Too short and the amount of header information rlative the data gets larfer, so the percentage of bandwith used  goes down. More seriously, if you build a device that processes cells at some maximum number of cells per second, then as cells get shorter the total data rate drops. 
+
+On the other hand, if cells are too big then you might waste bandwidth filling out the space needed for a complete cell. If you want to send 1 byte of data and the required payload is 48 bytes, you need 47 bytes of padding.
+
+## Source Routing
+
+ A third approach that uses neither virtual circuits nor conventional datagrams is known as *source routing*. The name derives from the fact that all information about network topology that is required to switch a packet across a network is provided by the source host. 
+
+  There are multiple ways to do this. One way is to have an ordered list of switch ports and rotate the list to the next switch in the path is always at the front. 
+![[Pasted image 20250204113153.png]]
+
+This approach assumes that the host A knows enough bout the topology to form a header that has all the right directions, and is somewhat analgous to build the forwarding tables in a datagram network. 
+
+We also cannot predict how big the header need to be, since it must hold one word for every swtich on the path, implying that headers have no upper bound unless we can predict with absolute certainty the maximum number of switched a packet will ever need to pass. 
+
+You can also vary implementation on the rotation. For example, you may just strip numbers or just carry a pointer. 
+![[Pasted image 20250204113516.png]]
+
+Source routes can sometimes be categorized as *strict* or *loose*. Strict source routes demand that every node along the path be specified. Loose routes can be thought of as a set of waypoints rather than a completely specified route. 
+
+# Switched Ethernet
+
+We now focus more closely on a specific switching technology: *Switched Internet*. Suppose you have a pair of Ethernets you want to connect. One approach you might try is putting a repeater between any pair of hosts. This would not be a workable solution if doing so exceeded the physical limitations of the Ethernet. Alternatively, you can put a node in between two Ethernets, and have the node forwards frames from one Ethernet to the other. This node would fully implement Ethernet's collision detection and media access protocols.
+
+This node is essentially a bridge. This strategy does have some pretty serious limitations, but a number of refinements have been added over the years to make bridges an effective mechanism for interconnecting a set of LANs. 
