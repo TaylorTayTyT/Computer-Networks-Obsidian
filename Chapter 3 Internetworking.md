@@ -105,8 +105,93 @@ You can also vary implementation on the rotation. For example, you may just stri
 
 Source routes can sometimes be categorized as *strict* or *loose*. Strict source routes demand that every node along the path be specified. Loose routes can be thought of as a set of waypoints rather than a completely specified route. 
 
+
+> [!NOTE] Summary
+> These switching basics mostly comprise of how do we send packets over a network. One option is datagrams - which include having a relatively static routing table to handle packet management. Another option is the virtual circuit method. This method involves two steps: connection and data-sending. This method sets up connections with surrounding nodes and uses an algorithm to undestand where to send packets. 
+
 # Switched Ethernet
 
 We now focus more closely on a specific switching technology: *Switched Internet*. Suppose you have a pair of Ethernets you want to connect. One approach you might try is putting a repeater between any pair of hosts. This would not be a workable solution if doing so exceeded the physical limitations of the Ethernet. Alternatively, you can put a node in between two Ethernets, and have the node forwards frames from one Ethernet to the other. This node would fully implement Ethernet's collision detection and media access protocols.
 
 This node is essentially a bridge. This strategy does have some pretty serious limitations, but a number of refinements have been added over the years to make bridges an effective mechanism for interconnecting a set of LANs. 
+
+## Learning Bridges
+
+The first optimization we can make is to observe that it need not forward all frames that it receives. 
+![[Pasted image 20250206114722.png]]
+Consider the bridge above. If host A sends a frame to host B, the bridge does not need to send the frame over to port 2. The question is: how did the bridge know which port the various hosts reside?
+
+One option is for the bridge to have a table like the one above. Hence, it would know exactly which host in related to which port. Because having a human maintain this table would be too cumbersome, the bridge will inspect the source address in all frames it receives, and records the fact that a frame from host A was just received on port 1. 
+
+Note that each packet caries a global address, and the bridge decides which output to send a packet. 
+
+When a bridge first botts, the table is empty, and then adds entries over time. Also, a timeout is associated with each entry such that after a period of time the bridge discards the entry. This is in guard of the situation when one host is moved from one network to another. If a bridge receives a frame addressed to a host not currently in the table, it forwards the frame on all other ports. 
+
+## Spanning Tree Algorithm
+
+The strategy we just talked about works fine until the network has a loop in it, in which case it fails horribly. 
+
+![[Pasted image 20250206120600.png]]
+
+Suppose a packet enters S4 from Host C, and that the destination address is one not yet in any switches' forwarding table. S4 sends a copy of its packet to S1 and S6.  S6 forwards to S1, and S1 forwards to S6, both of which are forwards to S4. S4 still does not have the packet's destination address in its table, so it keeps forward to S1 and S6. Hence, a cycle forms. 
+
+Why would there be a loop? One possibility is that the network is managed by more than one administrator, and that no single person know the entire configuration of the network. Another reason is that loops may be built in to provide redundancy just in case something fails in the middle of the network.
+
+This problem is addressed by running a distributed *spanning tree* algorithm. 
+![[Pasted image 20250206121148.png]]
+The spanning tree algorithm is a protocol used by a set of switches to agree upon a spanning tree for a particular network. This means that each switch will limit which ports it will send data through, and is possible that an entire switch will not participate in sending frames. This algorithm is also dynamic, to account for possible switch failures. 
+
+The main idea behind the spanning is for switches to select the ports over which they will forward frames. The root node will be the switch with the smallest ID, and will always forward frames over all ports. Next, each switch computes the shortest path to the root and notes which ports are on this path. Then, to account for the fact that there could be a switch connected to its ports, the switch elects a single *designated* switch to forward frames towards the root. The designated switch is the one closest to the root, and if there is a tie, the one with the smallest ID wins. Of course, each switch may be connected to more than one other switch, so it participates in the election of a designated switch for each such port. This means that each switch decides if it is the designate switch relative to each of its ports. The switch forwards frames over those ports for which it is the designated switch. 
+![[Pasted image 20250206122903.png]]While it is possible for a human to look at the given network a compute the spanning tree, switches do not have the luxury of seeing the topology of the entire network. Instead, they have to send configuration messages. 
+
+The configuration messages contain three pieces of information: 
+1. The ID of the switch sending the message.
+2. The ID of the sending switch believed to be the root switch. 
+3. The distance - measured in hops - from the sending switch to the root switch
+
+Each switch records the current *best* configuration message it has seen on each of its ports, including messages from itself and by other switches. 
+
+Initially, each switch thinks its the root and sends a config message saying that it is the root. Upon receiving the message, a switch checks to see if the new message is better than the current config. The new message is considered better if any of the following is true:
+1. It identifies a root with a smaller ID
+2. It identifies a root with an equal ID but with a shorter distance.
+3. The root ID and distance are equal, but the sending switch has a smaller ID.
+
+If the new message is better, the switch discards the old information. However, it first adds 1 to the distance-to-root field since the switch is one hop farther away from the root than the switch that sent the message. 
+
+Once a switch receives a message indicating that it does not have the best message, it stops generating configuration messages and only forwards messages from other switches. Thus, the system stabilizes only when the root switch is still generating configuration messages and the other switches are forwarding messages only over ports for which they are the designated switch. At this point, a spanning tree has been built. 
+
+## Broadcast and Multicast
+
+Since he goal of a switch is to extend a LAN across multiple networks and most LANs support broadcast and multicast, switches must also support these two features. Broadcast is simple - each switch forwards a frame with a destination broadcast address out on each active (selected) port other than the one on which the frame was received.
+
+Multicast can be implemented in exactly the same way, with each host deciding for itself to accept the message. However, we can also use the spanning tree algorithm to prune networks over which multicast frames need not be forwarded. This method is not widely adopted. 
+
+## Virtual LANs (VLANs)
+
+Switches do not scale. The spanning tree algorithm is linear, and switched forward all broadcast frames even when other people most likely do not need to see everyone's messages. 
+
+The VLAN is a way to increase scalability. VLANs allow a single extended LAN to be partitioned into seemingly separate LANs, and each VLAN is assigned an identifier where packets can only travel from one segment to another if both have the same identifier. 
+![[Pasted image 20250210110612.png]]
+
+
+
+We now provide an example. Suppose I broadcast from Host X. The packets goes to S2. S2  observes that it came from a port configured as VLAN 100 and inserts the VLAN header  between the Ethernet header and its payload. The switch now forwards the packet, but sets an extra restriction that the packet may not be sent out an interface not part of VLAN 100. The packets is then forwarded onto S1, and then to host W. 
+
+VLANs are attractive because you can change the logical topology w/o moving any wires or changing any addresses. 
+
+![[Pasted image 20250210111707.png]]
+
+We note that switches are limited in the kinds of networks they can interconnect. In particular, switches support only networks that have the exact same format for addresses - in other words, they do not generalize well. 
+
+# Internet (IP)
+
+In this section, we explore some ways to go beyond the limitations of bridges networks, and build large, highly heterogeneous networks with reasonably efficient routing.  We refer to such networks as *internetworks* 
+
+## What is an Internetwork?
+
+We use the term *internetwork* - or sometimes just *internet* - to refer to an arbitrary collection of networks interconnected to provide some host-to-host packet delivery service. When we talk about the widely used global internet in which a large percentage of networks are now connected, we call it the *Internet* with a capital *I*. We mainly want to learn about the internet, buyt will use real-world examples from the Internet. 
+
+We also specify that a *network* is a directly connected or a switched network, using one technology like 802.11 or Ethernet. An *internetwork* is an interconnected collection of such networks. An internet is a *logical* network built out of a collection of physical networks. In this context, a collection of Ethernet segments connected by bridges or switches would still be viewed as a single network. 
+![[Pasted image 20250210112952.png]]The *Internet Protocol* is the key tool used today to build scalable, heterogeneous networks. One way to think about IP is that it runs on all the nodes (both hosts and routers) in a collection of networks and defines the infrastructure that allows these nodes and networks to function as a single logical internetwork. 
+![[Pasted image 20250210114409.png]]
+

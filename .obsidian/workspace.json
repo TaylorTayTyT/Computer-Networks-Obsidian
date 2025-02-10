@@ -94,17 +94,17 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Untitled.md",
-                "collapseAll": false,
-                "extraContext": false,
+                "file": "Chapter 3 Internetworking.md",
+                "collapseAll": true,
+                "extraContext": true,
                 "sortOrder": "alphabetical",
-                "showSearch": false,
+                "showSearch": true,
                 "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Untitled"
+              "title": "Backlinks for Chapter 3 Internetworking"
             }
           },
           {
@@ -165,20 +165,20 @@
   },
   "active": "3274f12c5bfcd80a",
   "lastOpenFiles": [
-    "Pasted image 20250204113516.png",
-    "Pasted image 20250204113153.png",
-    "Pasted image 20250204110708.png",
+    "Pasted image 20250210114409.png",
+    "Pasted image 20250210112952.png",
+    "Pasted image 20250210111707.png",
+    "Pasted image 20250210110612.png",
     "Chapter 2 Direct Links.md",
-    "assets/Pasted image 20250203115126.png",
     "Chapter 3 Internetworking.md",
-    "assets/Pasted image 20250203114125.png",
-    "assets/Pasted image 20250203112346.png",
-    "assets/Pasted image 20250203112328.png",
-    "assets/Pasted image 20250203111503.png",
-    "assets/Pasted image 20250128120200.png",
-    "assets/Pasted image 20250128113722.png",
+    "Pasted image 20250206122903.png",
+    "Pasted image 20250206121148.png",
+    "Pasted image 20250206120600.png",
+    "Pasted image 20250206114722.png",
+    "assets/Pasted image 20250204113516.png",
+    "assets/Pasted image 20250204113153.png",
+    "assets/Pasted image 20250204110708.png",
     "assets/Computer Networks.pdf",
-    "assets/Pasted image 20250127113325.png",
     "assets",
     "Welcome.md"
   ]
