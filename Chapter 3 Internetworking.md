@@ -195,3 +195,95 @@ We also specify that a *network* is a directly connected or a switched network, 
 ![[Pasted image 20250210112952.png]]The *Internet Protocol* is the key tool used today to build scalable, heterogeneous networks. One way to think about IP is that it runs on all the nodes (both hosts and routers) in a collection of networks and defines the infrastructure that allows these nodes and networks to function as a single logical internetwork. 
 ![[Pasted image 20250210114409.png]]
 
+## Service Model 
+
+A good place to start when you build an internetwork is to define its *service model* - the host-to-host services you want to provide. The main concern is that we can provide a host-to-host service only if this service can somehow be provided over each of the underlying physical networks. For example, if our service were to guarantee delivery every packet in 1 ms or less, we should not have underlying network technologies that could arbitrarily delay packets.
+
+The IP service model can be thought of ass having two parts: an addressing scheme - to identify all hosts - and a datagram (connectionless) model of data delivery. 
+
+### Datagram Delivery 
+
+Recall that a datagram is a type of packet that happens to be sent in a connectionless manner over a network. In essence, you send a packet, and the network makes a "best-effort" to send the packet to its destination, and does not attempt to recover from failure. This is sometimes called an *unreliable* service. 
+
+Best effort, connectionless service is about the simplest service you could ask for from an internetwork. 
+
+Because IP can "run over anything", it has made it extremely adaptable not only to new technology, but legacy protocols as well. 
+
+### Packet Format
+
+A key part of the IP service model is the type of packets that can be carried. Notice that this is a different way from the way we've been using to represent packets. This is because packet formats at the internetworking layer and above, and are are almost invariably designed to align on 32-bit boundaries to simplify the task of processing them in software. 
+![[Pasted image 20250213114744.png]]
+
+### Fragmentation and Reassembly
+
+One of the problems of providing a uniform host-to-host service model over a heterogeneous collection of networks is that each network technology tends to have its own idea of how large a packet can be. Ethernet accepts packets up to 1500 bytes, but modern-day variants can deliver up to 9000 bytes. Hence, IP datagrams provide a means by which packets can be fragmented and reassembled when they are too big to go over a given network technology. This is a good choice given that new technologies are always showing up and the host does not need to send needlessly small packets. 
+
+The central idea here is that every network type has a *maximum transmission unit* (MTU) - the largest IP datagram that it can carry in a frame. This value is smaller than the largest packet size on that network because the IP datagram needs to fit in the *payload* of the link-layer frame. 
+
+When a host sends an IP datagram, it can choose any size it wants - a reasonable choice is the MTU of the network to which the host is directly attached. Fragmentation will be necessary if the path to the destination includes a network with a smaller MTU. 
+
+To enable fragments to be reassembled, they all carry the same identifier in the *Ident* field. This identifier is chosen by the sending host. The receiver can then reassemble those fragments and, should not all fragments arrive, the receiver will give up reassembly and discard the fragments that did arrive. 
+![[Pasted image 20250213121041.png]]
+
+## Global Addresses
+
+We need a global addressing scheme for IP.
+
+Although Ethernet addresses are globally unique, Ethernet addresses are also *flat* - meaning they have no structure and provide few clues to routing protocols. In contrast, IP addresses are *hierarchical* , meaning they make up several parts that correspond to some sort of hierarchy in the internetwork. Specifically, IP addresses consist of two parts - the *network* and the *host*. The network part of an IP address identifies the network to which the host is attached; all hosts attached to the same network have the same network part in their IP address. The host part then identifies each host uniquely on that particular network. 
+
+![[Pasted image 20250217112747.png]]
+
+Looking at the routers above, we can see they are attached to two networks. They need to have an address on each network. For example, router R1 - which sits between the wireless network and an Ethernet - has an IP address on the interface to the Ethernet that has the same network part as the hosts on that Ethernet. Thus, it is more precise to think of IP addresses as belonging to interfaces than to hosts. 
+
+What do these hierarchical addresses look like? The size of these two parts are not the same for all addresses. Originally, IP addresses were divided into three different classes - each of which defines different-sized network and host parts. 
+
+![[Pasted image 20250217113646.png]]
+
+The class of an IP address is identified in the most significant few bits. If the first bit is 0, it is class A. If the first bit is 1 and the second is 0, it is class B. If the first two bits are 1 and the third is 0, it is class C. Each class allocates a certain number of bits for the network part of the address and the rest for the host part (see above for the ratios).
+
+This addressing scheme has a lot of flexibility, allowing networks of vastly different size to be accommodated fairly efficiently. The original idea was that the Internet would consist of a small number of WANs, a modest number of site-sized networks, and a large number of LANs. However, this scheme needed to be more flexible, and so IP addresses today are normally "classless."
+
+By convention, IP addresses are written as four *decimal* integers separated by dots. Each integer represents the decimal value contained in 1 byte of the address, starting at the most significant. 
+
+### Datagram Forwarding in IP
+
+Recall that *forwarding*is the process of taking a packet from an input and sending it out on the appropriate output, while *routing* is the process of building up tables that allow the correct output for a packet to be determined. We focus here on forwarding.
+
+The main points to bear in mind as we discuss forwarding of IP datagrams are the following:
+- Every IP datagram contains the IP address of the destination host
+- The network part of an IP address uniquely identifies a single physical network that is part of the larger Internet
+- All hosts and routers that share the same network part of their address are connected to the same physical network
+- Every physical network that is part of the Internet has at least one router that, by definition, is also connected to at least one other physical network
+
+Forwarding IP datagrams works as follows. A datagram is sent from a source host to a destination hosts, possible passing through several routers. Any node tries to figure out if its connected to the same physical network  as the destination. If a match occurs, then the packet can be directly delivered over that network. Else, it needs to send the datagram to a router. In general, each node will have a choice of several routers, so it needs to choose the best router. This best router is called the *next hop* router. The router finds the correct next hop by consulting the forwarding table. 
+
+In terms of pseudocode, this is the forwarding algorithm: 
+![[Pasted image 20250217120032.png]]
+
+
+### Subnetting and Classless Addressing
+
+The original intent of IP addresses was that the network part would uniquely identify exactly one physical network. This approach has a couple of drawbacks. Imagine a large campus with lots of internal networks and decides to connect to the Ethernet. For every network, no matter how small, the site needs at least a class C network address. Even worse, for wany network with more than 255 hosts, they need a class B address. This causes a lot of waste in terms of network numbers. 
+
+Using one network number per physical network, hence, uses up the IP address space much faster than we'd like. We also do not want too much network numbers because the router then has to add more values to its routing table, making routers more expensive and less efficient. 
+
+*Subnetting* provides a single step to reducing total number of network numbers that are assigned. The ideas is to take a single IP network number and allocate the IP addresses within to several physical networks, now referred to as *subnets*. The subnets should be close to one another, because from the POV of the Internet, they will all look like a single network, with only one network number between them. This means that a router will only be able to select one router to reach any of the subnets. A perfect situation for this is a large campus or corporation. From outside the campus, all you need to know is the single point at which the campus is connected to rest of the Internet, and then then campus's internal subnets can handle the rest. 
+
+The mechanism in which a single network number can be shared among mulitple networks involves configuring all nodes on each subnet with a *subnet mask*. All hosts on the same network must have the same network number. This subnet mask enables us to introduce a *subnet number* - all hosts on the same physical netwrok will have the same network number, meaning that hosts may be on different physical networks but share a single network number. 
+
+![[Pasted image 20250217122539.png]]
+
+What subnetting means to a host is that is now has both an IP address and a subnet mask for the subnet to which it is attached. 
+
+![[Pasted image 20250217122641.png]]
+For example, H1 is configured with an address of 128.96.34.15 and a subnet mask of 255.255.255.128. The bitwise AND of these two numbers defines the subnet number of the host and of all other hosts on the same subnet. In this case, the result becomes 128.96.34.0, so this is the subnet number for the topmost subnet. 
+
+When the host wants to send a packet to a certain IP address, the first thing it does is perform a bitwise AND between its own subnet mask and the destination IP address. If the result equals the subnet number of the sending host, then we know the destination is on the same subnet and the packet can be delivered over the subnet. If not, the packet needs to be sent to another subnet, therefore sending the packet to a router. 
+
+The forwarding of a router also changes slightly while introducing subnetting. Recall, previously the forwarding tables had entries of the form (NetworkNum, NextHop). Now, the table must hold (SubnetNumber, SubnetMask, NextHop). To find the right entry in the table, the router ANDs the packet's destination address with the SubnetMask for each entry in turn. 
+![[Pasted image 20250220110910.png]]
+An important consequence of subnetting is that different parts of the internet see the world differently. From outside our hypothetical campus, routers see a single network. However, internally, packets need to sent to the right subnet. Thus, not all parts of the internet see exactly the same routing information. This is an example of *aggregation* of routing information. 
+
+## Classless Addressing
+
+Subnetting has a counterpart, sometimes called *supernetting* but more often *Classless Interdomain Routing* (CIDR). CIDR takes the subnetting idea to its logical conclusion by doing away with address classes together. Why isn't subnetting only sufficient? In essence, subnetting allows us to split a classful address among multiple subnets, while CIDR allows us to coalesce several classful addresses into a single "supernet." The further tackles address space inefficiency and in a way that keeps the routing system from being overloaded. 

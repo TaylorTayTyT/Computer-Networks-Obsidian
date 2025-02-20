@@ -94,17 +94,17 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Chapter 3 Internetworking.md",
-                "collapseAll": true,
-                "extraContext": true,
+                "file": "assets/Pasted image 20250217122641.png",
+                "collapseAll": false,
+                "extraContext": false,
                 "sortOrder": "alphabetical",
-                "showSearch": true,
+                "showSearch": false,
                 "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Chapter 3 Internetworking"
+              "title": "Backlinks for Pasted image 20250217122641"
             }
           },
           {
@@ -140,18 +140,21 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Untitled.md"
+                "file": "Chapter 3 Internetworking.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Untitled"
+              "title": "Outline of Chapter 3 Internetworking"
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -165,19 +168,19 @@
   },
   "active": "3274f12c5bfcd80a",
   "lastOpenFiles": [
-    "Pasted image 20250210114409.png",
-    "Pasted image 20250210112952.png",
-    "Pasted image 20250210111707.png",
-    "Pasted image 20250210110612.png",
-    "Chapter 2 Direct Links.md",
+    "Pasted image 20250220110910.png",
+    "assets/Pasted image 20250217122641.png",
     "Chapter 3 Internetworking.md",
-    "Pasted image 20250206122903.png",
-    "Pasted image 20250206121148.png",
-    "Pasted image 20250206120600.png",
-    "Pasted image 20250206114722.png",
-    "assets/Pasted image 20250204113516.png",
-    "assets/Pasted image 20250204113153.png",
-    "assets/Pasted image 20250204110708.png",
+    "assets/Pasted image 20250217122539.png",
+    "assets/Pasted image 20250217120032.png",
+    "assets/Pasted image 20250217113646.png",
+    "assets/Pasted image 20250217112747.png",
+    "assets/Pasted image 20250213121041.png",
+    "assets/Pasted image 20250213114744.png",
+    "assets/Pasted image 20250210114409.png",
+    "assets/Pasted image 20250210112952.png",
+    "assets/Pasted image 20250210111707.png",
+    "Chapter 2 Direct Links.md",
     "assets/Computer Networks.pdf",
     "assets",
     "Welcome.md"
