@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "Chapter 3 Internetworking"
             }
+          },
+          {
+            "id": "e414a9a646864238",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Chapter 3 Internetworking.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Chapter 3 Internetworking"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -78,7 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "97bfe653e412709f",
@@ -166,8 +181,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "3274f12c5bfcd80a",
+  "active": "e414a9a646864238",
   "lastOpenFiles": [
+    "Pasted image 20250220153704.png",
+    "Pasted image 20250220142707.png",
     "Pasted image 20250220110910.png",
     "assets/Pasted image 20250217122641.png",
     "Chapter 3 Internetworking.md",
@@ -178,8 +195,6 @@
     "assets/Pasted image 20250213121041.png",
     "assets/Pasted image 20250213114744.png",
     "assets/Pasted image 20250210114409.png",
-    "assets/Pasted image 20250210112952.png",
-    "assets/Pasted image 20250210111707.png",
     "Chapter 2 Direct Links.md",
     "assets/Computer Networks.pdf",
     "assets",

@@ -287,3 +287,49 @@ An important consequence of subnetting is that different parts of the internet s
 ## Classless Addressing
 
 Subnetting has a counterpart, sometimes called *supernetting* but more often *Classless Interdomain Routing* (CIDR). CIDR takes the subnetting idea to its logical conclusion by doing away with address classes together. Why isn't subnetting only sufficient? In essence, subnetting allows us to split a classful address among multiple subnets, while CIDR allows us to coalesce several classful addresses into a single "supernet." The further tackles address space inefficiency and in a way that keeps the routing system from being overloaded. 
+
+For example, consider a company whose network has 256 hosts on it. That's slightly too much for a Class C address, so you would be tempted to assign a class B. However, this is clearly inefficient, since you would only be using a tiny fraction of the hosts available for a class B. Even if subnetting helps us assign addresses carefully, any organization with more than 255 hosts will want a class B address. 
+
+One way to deal with this is to refuse to give a class B address inless they have a need for something close to 64K addresses, and just given them a number of class C addresses. 
+
+This solution raises a problem though: excessive storage requirements at the routers. If a single site has 16 class C network numbers, then each Internet backbone router needs 16 entries in its routing tables to direct packets to that site. If we assigned a class B, then we would only need one entry. 
+
+CIDR tries to balance the number of routes that a router needs to know against the need to hand out addresses efficiently. To do this, CIDR helps us to *aggregate* routes - meaning it lets us use a single entry in a forwarding table to tell us how to reach a lot of different networks. 
+
+To do this, it breaks the rigid boundaries between address classes. Lets look at our hypothetical organization with 16 class C network numbers. Instead of handing out some random 16 class C addresses, we can hand out a block of contiguous class C addresses. For example, we can give out class C network number from 192.4.16 through 192.4.31. See that the top 20 bits of the addresses are the same. Hence, what we have effectively created is a 20-bit network number - somewhere between a class B and a class C. Observe that, for this scheme to work, we need to hand out blocks of class C addresses that share a common prefix, which means that each block must contain a number of class C networks that is a power of 2. 
+
+CIDR requires a new type of notation to represent network number - *prefixes* as they are known, since prefixes can be of any length. The convention is to place a /X after the prefix, where X is the prefix length in bits. So, for our example, the 20 bit prefix would be represented as 192.4.16/20. Nowadays, it is more common to hear people talk about "slash 24" prefixes than class C networks. Note that representing a network address in this way is similar to the (mask, value) approach used in subnetting. 
+
+The ability to aggregate is only the first step. If we are an ISP, if we assign prefixes to customers in a way that many different networks share a common, shorter address prefix, we can get even aggregation of routes. 
+
+![[Pasted image 20250220142707.png]]
+
+One way to accomplish this is to assign a portion of the address space to the provider in advance, and then let the network provider assign addresses from that space to its customers as needed. 
+
+### IP Forwarding Revisited
+
+Because CIDR has prefices of any length, these prefixes in a forwarding table may "overlap", in the sense that some addresses may math more than one prefix. For example, if we find both 171.69 and 171.69.10 in the routing table, then a packet like 171.68.10.5 matches both. The rule in this case is the principle of "longest match" - the packet matches the longest prefix. 
+
+## Address Translation (ARP)
+
+We glosses over how to get a datagram to a particular host or router on that network. The main issue is that IP datagrams has IP addresses, while the physical hardware only understands the addressing scheme of that particular network. Thus, we need to translate the IP address to a link-level address that makes sense. We then encapsulate the IP datagram inside a frame that contains the link-level address and send it either to the ultimate destination or to a router that promises to forward the datagram toward the ultimate destination. 
+
+A simple way to map an IP address into a physical network address is to encode a host's physical address in the host part of its IP address. For example, a host physical address 33.81 might be given the IP address 128.96.33.81. However, we are limited that the network's physical address size limit. 
+
+A more general solution would be have each host maintain a table of address pairs where IP addresses would be mapped to physical addresses. We use the Address Resolution Protocol (ARP) for each host to dynamically learn the contents of the table using the network. Since these mapping may change over time dure to changes in the network, entries are timed out periodically and removed every 15 minutes. This set of mapping is known as the ARP cache or the ARP table. 
+
+ARP takes advantage of the fact that many link-level network tech, such as Ethernet, support Broadcast. If a host wants to send an IP datagram to a host it knows to be on the same network, it will first check for a mapping in the cache. If not mapping is found, it invokes ARP by broadcasting an ARP query onto the network. The query contains the target IP address, and each host received the query and checks to se if it matches its IP address. If it matches, the host sends a response message containing the link-layer address back to the originator of the query. The originator adds that information to its ARP table. 
+
+The query message also included the IP address and link-layer address of the sending host. THus, when a host broadcasts a query message, each host on the netwrok can learn the sender's link-level and IP address and add that to the table unless it already has that information. In that case, the existing entry gets refreshed, and resets the time to discard the entry. If a host is the target for that query, it adds the information about its sender to its table, even if it did not already have an entry for the hose because there's a good chance the source host is about to send an application level message and may eventually have to send an ACK back to the source - it will need the source's physical address to do this. If a host is not the target, then it does not need to add this link-level address. 
+
+![[Pasted image 20250220153704.png]]
+
+The ARP packet contains:
+
+- a **HardwareType** field, which specifies the type of physical network (e.g. Ethernet)
+- a **ProtocolType** field, which specifies the higher-layer protocol (e.g., IP)
+- **HLen** (hardware) and **PLen** (protocol), which specifiy the length of the link-layer address and higher-layer protocol address
+- An **Operation** field, which specifies whether this is a request or a response. 
+- The source and target hardware (Ethernet) and protocol (IP) addresses.
+
+We have now seen how IP deals with both heterogeneity and scale. IP makes a best-effort service model that makes minimal assumptions about the underlying network. IP then has a common packet format and a global address space for identifying all hosts. On scale, IP uses hierarchical aggregation to reduce the amount of information needed to forward packets. 
