@@ -281,7 +281,7 @@ For example, H1 is configured with an address of 128.96.34.15 and a subnet mask 
 When the host wants to send a packet to a certain IP address, the first thing it does is perform a bitwise AND between its own subnet mask and the destination IP address. If the result equals the subnet number of the sending host, then we know the destination is on the same subnet and the packet can be delivered over the subnet. If not, the packet needs to be sent to another subnet, therefore sending the packet to a router. 
 
 The forwarding of a router also changes slightly while introducing subnetting. Recall, previously the forwarding tables had entries of the form (NetworkNum, NextHop). Now, the table must hold (SubnetNumber, SubnetMask, NextHop). To find the right entry in the table, the router ANDs the packet's destination address with the SubnetMask for each entry in turn. 
-![[Pasted image 20250220110910.png]]
+![[Pasted image 20250220110910 1.png]]
 An important consequence of subnetting is that different parts of the internet see the world differently. From outside our hypothetical campus, routers see a single network. However, internally, packets need to sent to the right subnet. Thus, not all parts of the internet see exactly the same routing information. This is an example of *aggregation* of routing information. 
 
 ## Classless Addressing
@@ -333,3 +333,78 @@ The ARP packet contains:
 - The source and target hardware (Ethernet) and protocol (IP) addresses.
 
 We have now seen how IP deals with both heterogeneity and scale. IP makes a best-effort service model that makes minimal assumptions about the underlying network. IP then has a common packet format and a global address space for identifying all hosts. On scale, IP uses hierarchical aggregation to reduce the amount of information needed to forward packets. 
+
+## Host Configuration (DHCP)
+
+Ethernet addresses are configured into the network adaptor by the manufacturer, and is managed to make sure all addresses are globally unique. However, IP addresses have a network and a host, so a manufacturer cannot fix the IP address because they do not know which host a machine will connect to. Hence, IP addresses need to be reconfigurable.
+
+In addition, a host must have the address of a default router to send packets whose destination is not on their same network. 
+
+Because manually configuring IP address can be error prone, a protocol called the *Dynamic Host Configuration Protocol* (DHCP) is used to automate this process. 
+
+DHCP relies on a DHCP server responsible for providing configuration information to hosts. At the simplest level, the DHCP server can function just as a centralized repository for host configuration information. This way, a network administrator, if they do need to edit addresses, doesn't have to go to the host directly but can just update the server. More sophisticatedly, the DHCP server maintains a pool of available addresses that it hands out to hosts on demand. 
+
+Because the point of DHCP is to minimize manual configuration, and we do not want to go to each host to configure the address of the DHCP server, we come across the problem of discovery. 
+
+To contact a DHCP server, a newly booted or attached host sends a DHCPDISCOVER message to the IP broadcast address (255.255.255.255). This means it will be received by all hosts and routers. In the simplest case, the DHCP server then responds. However, it is not desirable to have one DHCP server on every network, because this requires quite a large number of networks. Thus, DHCP uses a *relay* *agent* for each  network, and just contains the address of the DHCP server. 
+
+![[Pasted image 20250224114214.png]]
+
+When DHCP dynamically assigns IP addresses to its hosts, it is clear that hosts cannot keep addresses indefinitely. Hence, the DHCP allows addresses to be leased for some period of time. Once the lease expires, the server is free to return that address to its pool. A host with a leased address needs to periodically renew the lease. 
+![[Pasted image 20250224114507.png]]
+
+# Error Reporting (ICMP)
+
+IP is always configured with a companion protocol known as the *Internet Control Message Protocol* (ICMP) that defines a collection of error messages sent back to the source host when a router or host fails. 
+
+ICMP also has a handful of control messages a router can send back to a source host. ONe of the most useful - called *ICMP-Redirect* tells the source host that there is a better route to the destination. 
+
+## Virtual Networks and Tunnels
+
+We have focused on being able to unrestrictedly be able to send information to each other. However, there are times where we want to control connectivity. Here, the *virtual private network* (VPN) comes into play. 
+
+We can first think about a private networks such that communication is restricted to certain sites. To make private network virtual, transmission lines would have to be replaced by some sort of shared network. A virtual circuit is a very reasonable replacement for a leased line because it still provides logical point-to-point connection between corporation sites. 
+![[Pasted image 20250224115245.png]]
+In the figure above, a virtual circuit network is used to provide controlled connectivity among sites. We can use a n IP network to provide this connectivity, but we can't just connect the corporations' sites to a single internetwork because we want X and Y to stay separate. Hence, we have an *IP tunnel*.
+
+We can think of an IP tunnel as a virtual point-to-point link between a pair of nodes that are actually separated by an arbitrary number of networks. The router at the entrance of the tunnel will be provided with the IP address of the router at the far end. Whenever the router at the entrance of the tunnel wants to send a packet over this virtual link, it encapsulates the packet inside an IP datagram, and places the destination address as the address of the router at the far end of the tunnel. 
+
+![[Pasted image 20250224115749.png]]
+Why would anyone go through this trouble? One reason is security. A tunnel can be a private sort of link across a public network. Another may be that by connecting routers with a tunnel, we can build a virtual network in which all routers with a certain capability appear to be directly connected. Another is to carry packets from protocols other than IP across an IP network. We also see that tunneling forces a packet to be delivered to a particular place even if its original header suggest it go elsewhere. 
+
+Tunneling has downsides. It increases the length of packets - wasting bandwidth and increasing fragmentation. Routers at the end of the tunnel also have to deal with more work because they have to add and remove the tunnel header. Finally, there is a management cost for whoever is administrating these tunnels. 
+
+# Routing
+
+We have assumed that switches and router know enough to choose which port to forward packets. As we've seen, this information is grabbed from the routing table. We now talk about how these switches and routers acquire information into their forwarding tables. 
+
+
+> [!NOTE] Distinction between forwarding and routing
+> Forwarding is the process of receiving a packet, looking up its destination address in a table, and sending the packet in a direction determined by that table. 
+> Routing is the process by which forwarding tables are built. 
+
+We will also make a distinction between the *forwarding table* and the *routing table*. The forwarding table is used when a packet is being forwarded and must contain enough information to accomplish the forwarding function. The routing table is built by routing algorithms as a precursor to building the forwarding table, general containing mappings from network prefixes to next hops. 
+
+![[Pasted image 20250225113803.png]]
+
+![[Pasted image 20250225113814.png]]
+
+The key question we need to ask anytime we try to build a mechanism for the Internet is: "Does this scale?" The solutions that will be described do not scale much, but provide a good building block for the hierarchical routing infrastructure used in the Internet today. Hence, the problem of routing that we will be discussing is in the context of a small to midsized network. 
+
+## Network as a Graph
+
+Routing is a problem of graph theory. 
+![[Pasted image 20250225114136.png]]
+
+
+In our initial discussion, nodes are routers and edges are network links that have some associated cost. The basic problem of routing is to find the lowest-cost path between any two nodes. For a simple network, you might just want to calculate all shortest paths and then load them into some storage on each node. This has several shortcomings: 
+- does not deal with node or link failures
+- does not consider the addition of new nodes or links
+- implies that edge costs cannot change
+
+Hence, we instead run routing protocols among the nodes to have a distributed, dynamic way of finding the lowest cost path in the presence of link and node failures and changing edge costs. 
+
+To begin, we assume that edge costs are known. We examine the two main classes of routing protocols: *distance vector* and *link state*. 
+
+## Distance-Vector (RIP)
+
