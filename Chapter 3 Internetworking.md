@@ -406,6 +406,66 @@ Hence, we instead run routing protocols among the nodes to have a distributed, d
 
 To begin, we assume that edge costs are known. We examine the two main classes of routing protocols: *distance vector* and *link state*. 
 
-## Distance-Vector (RIP)
+### Distance-Vector (RIP)
 
+The idea behind this algorithm is suggested by its name (also referred to as the Bellman-Ford after its inventors).
 
+The starting assumption is that each node knows the cost of the link to each of its directly connected neighbors. A link that is down is assigned an infinite cost.
+
+![[Pasted image 20250227114710.png]]
+![[Pasted image 20250227114740.png]]
+  We consider the above a demonstration of this algorithm. Because each link is set to 1, the least-cost path is just the one with the fewest hops. Each node only knows one row of the table shown above. 
+
+We consider each row the node's current belief about its distances from all other nodes. 
+
+The next step is for every node to send a message to its directly connected neighbors containing its personal list of distances. This helps each node learn how far away it is from the neighbors of its neighbors. 
+
+In the absence of any topology changes, it will take only a few exchanges of information before each node has a complete routing table. The process of getting consistent routing information to all nodes is called *convergence*. 
+
+There are a few details to note. Firstly, there are two different circumstances in which nodes will send a routing update. One of these circumstances is the *periodic* update - each node sends an update message every so often. The second is a *triggered* update, where if a node notices a link failure or an update from its neighbor it will send an update to its neighbors. 
+
+If a link goes down, a problem may occur when the network is trying to stabilize - specifically a *count to infinity* problem, which happens due to timing issues. Essentially, a node may initially know that a link is down, but then gets updates from its neighbors that will change its routing table to show that the link is down. Eventually, the nodes will know that the distance is infinite, but only when the distance is so big that it must be infinite.
+
+We can use a technique called *split horizon* to solve this problem. However, this technique only works for routing loops that involve two nodes. 
+
+### Routing Information Protocol (RIP)
+
+One of the more widely used routing protocols in IP networks is the Routing Information Protocol (RIP). 
+
+Routing protocols in internetworks differe very slightly from the idealized graph model described above. In an internetwork, the goal of the routers is how to forward packets to various *networks*. Hence, these link distances are the cost of reaching different networks. 
+
+![[Pasted image 20250227120714.png]]
+![[Pasted image 20250227120741.png]]
+RIP has a fairly straightforward implementation of distance-vector routing. Routers running RIP send advertisements every 30 seconds. RIP also can have multiple addresses, not just IP - which is why it has *Family* has part of their advertisements. RIP, however, is only used in fairly small networks - those with no paths longer than 15 hops. 
+
+## Link State
+
+Link state routing is the second major class of intradomain routing protocol. 
+
+The starting assumptions are rather similar to that of distance-vector routing. Each node is assumed to be capable of finding out the state of the link to its neighbors and the cost of each link. The basic idea behind link-state protocols is simple: each node knows its directly connected neighbors and, if we want the totality of this knowledge disseminated to every node, then every node has enough knowledge of the network to build a complete map of the network. Thus, link-state routing protocols rely on two mechanisms: reliable dissemination of link-state information, and the calculation of routes from the sum of all the accumulated link-state knowledge. 
+
+### Reliable Flooding
+
+*Reliable flooding* is the process of making sure all nodes participating in the routing protocol get a copy of the link-state information from all the other nodes. The basic idea is for a node to send its link-state information out on all its directly connected links, which then gets sent out on more links, so on and so forth until the information has reached every node. 
+
+More precisely, a node sends out an update packet - aka a *link-state packet* (LSP) that contains:
+- the ID of the node that created the LSP
+- a list of directly connected neighbors of that node, with the cost of the link to each one
+- a sequence number
+- a time to live for this packet
+
+The first two qualities are for route calculation, and the last two is for reliability. 
+
+Flooding works in the following way. Firstly, the transmission of LSPs between adjacent routers is reliable using ACKs and retransmissions just link in the link-layer protocol. To ensure reliability, however, we need a couple more steps.
+
+![[Pasted image 20250227122609.png]]
+
+Consider the node X that has received a copy of an LSP originating at some other node Y. X checks to see if it has a stored copy of an LSP from Y. If not, it saves that LSP. If X already has a copy, it compares the sequence numbers, and keeps the largest one (assumed to be more recent). If the new LSP is more recent, then we discard our old LSP and save this new one. We then broadcast the LSP to our neighbors, except for the node that we received the LSP from. 
+
+One the important design goals on a link-state protocol's flooding mechanism is that the newest information must be flooded to all nodes as quickly as possible, and old information removed from the network and not allowed to circulate. Another goal is just to remove the amount of routing traffic, to remove overhead of the application. 
+
+One way to reduce overhead is to avoid generating LSPs unless absolutely necessary by reducing periodic updates. 
+
+To make sure old information gets replaced by newer information, LSPs carry sequence numbers that do not wrap. If a node goes down and then comes back up, it will start with a sequence number of 0. If the node was down a long time, the old LSPs have all timed out.
+
+### Route Calculation
