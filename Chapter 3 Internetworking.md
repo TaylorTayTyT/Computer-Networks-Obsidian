@@ -469,3 +469,86 @@ One way to reduce overhead is to avoid generating LSPs unless absolutely necessa
 To make sure old information gets replaced by newer information, LSPs carry sequence numbers that do not wrap. If a node goes down and then comes back up, it will start with a sequence number of 0. If the node was down a long time, the old LSPs have all timed out.
 
 ### Route Calculation
+
+The solution for the route calculation is based on Dijkstra's Shortest Path Algorithm. In practice, each switch computes its routing table directly from the LSPs it has collected using a realization of Dijkstra's algorithm called the *forward search* algorithm. Specifically, each switch has two lists - *Tentative* and *Confirmed*. Each of these lists contains a set of entries of the form *(Destination, Cost, NextHop)*. The algorithm works as follows: 
+1. Initialize the *Confirmed* list with an entry for myself; this entry has a cost of 0. 
+2. For the node just added to *Confirmed* in the previous step, call it node *Next* and select its LSP
+3. For each neighbor(*Neighbor*) of *Next*, calculate the cost (*Cost*) to reach this *Neighbor* as the sum of the cost from myself to *Next* and *Next* to *Neighbor*. 
+	1. If *Neighbor* is currently onneither the *Confirmed* nor the *Tentative* list, then add *(Neighbor, Cost, NextHop)* to the *Tentative* list, where *NextHop* is the direction I go to reach *Next*
+	2. If *Neighbor* is currently on the *Tentative* list, and the *Cost* is less than the currently listed cost for *Neighbor*, then replace the current entry with *(Neighbor, Cost, NextHop)* where *NextHop* is the direction I go to reach *Next*.
+4. If the *Tentative* list is empty, stop. Otherwise, pick the entry from the *Tentative* list with the lowest cost, move it to the *Confirmed* list, and return to step 2. 
+
+![[Pasted image 20250306111525.png]]
+![[Pasted image 20250306111553.png]]
+
+This algorithm has many nice properties: It stabilizes quickly, does not generate much traffic, and responds rapidly to topology changes or node failures. On the downside, the information stored at each node can  be quite large. This causes a problem for scalability. 
+
+
+> [!NOTE] Key Takeaway
+> Distance-vector and link-state are both distributed routing algorithms. Distance-vector only talks to directly connected neighbors but tells them everythin they know; meanwhile, in link-state each node talks to all other nodes but only tells it what it knows for sure (ie. the state of its directly connected links). 
+
+## The Open Shortest Path First Protocol (OSPF)
+
+One of the most widely used link-state routing protocols is OSPF. The first word "Open" refers to the fact that it is an open, nonproprietary standard, created under IETF. The "SPF" part comes from an alternative name for link-state routing. OSPF adds quite a number of features to the basic link-state algorithm.
+
+- *Authentication of routing messages* - because information is being passed from the impact of many other nodes, it is important to authenticate routing messages. Now, there is strong cryptographic authentication.
+- *Additional hierarchy* - OSPF introduces another layer of hierarchy into routing by allowing a domain to be partitioned into *areas*. Hence, a router may not need to know how to reach every network, but only how to get to the right *area*. 
+- *Load Balancing* - OSPF allows multiple routes to the same place to be assigned the same cost and will cause traffic to be distributed evenly over those routes, making better use of network capacity. 
+
+![[Pasted image 20250306112933.png]]
+
+There are several different types of OSPF messages, but they all begin with the same header. 
+
+Of the 5 OSPF message types, type 1 is the "hello" message, where a router sends to its peers to notify that it is still alive and connected. The remaining types are used to request, send, and acknowledge the receipt of link-state messages.
+
+Like any internetworking routing protocol, OSPF must provide information about how to reach networks. Thus, OSPF must provide a good chunk of information. A router running OSPF may generate link-state packets that advertise one or more of the networks that are directly connected to that router. In addition, a router connected to another router by some link must advertise the cost of reaching that router. These two types of advertisements are necessary to enable all the routers in a domain to determine the cost of reaching all networks in that domain and the appropriate next hop for each network.
+
+![[Pasted image 20250306113625.png]]
+
+The above is a Type I LSA that advertises the cost of links between routers. Type 2 LSAs are used to advertise networks to which the advertising router is connected, while the other types are used to support additional hierarchy as will be described. The *LS Age* is the equivalent to a time-to-live.
+
+In a type 1 LSA, the *Link state ID* and the *Advertising router* field are identical. Each carries a 32-bit identifier for the router that created this LSA. It is essential that his ID is unique and that a router consistently uses the same router ID. 
+
+The *LS sequence number* is used exactly as described above to detect old or duplicate LSAs. The *LS* checksum is similar to other we have seen and is used to verify that data has not been corrupted. 
+
+Now to the actual link-state information. This is made a little complicated by the presence of TOS (type of service) information. Ignoring that for a moment, each link in the LSA is represented by a *Link ID*, some *Link Data*, and a *metric*. The first two of these fields identify the link; a common way to do this would be the router ID of the router at the far end of the link as the *Link ID*and then use the *Link Data*  to disambiguate among parallel links if  necessary. The *metric* is the cost of the link. *Type* tells us something about the link - like if it is a point-to-point link. 
+
+The TOS information allows the OSPF to choose different routes for IP packed based on the value in their TOS field. Instead of assigning a single metric to a link, it is possible to assign different metrics based on the TOS (type of service) value. 
+
+### Metrics 
+
+The preceding discussion assumes that link costs, or metrics, are known when we execute the routing algorithms. We now look at some ways to calculate link costs that have proven effective in practice. On example that we have seen is to assign a cost of 1 to all links. In this case, the least-cost solution is the solution with the least amount of hops. Such as approach has some drawbacks. It does not distinguish between links on a latency basis, so a satellite link with 250-ms latency looks just as attractive to the routing protocol as a terrestrial link with 1-ms latency. It also does not distinguish between links based on a capacity basis, making a 1-Mbps link look just as good as a 10-Gbps link. Finally, it does not distinguish between link based on their current load, making it impossible to router around overloaded links. It turns out this last problem is the hardest. 
+
+The ARPANET was the testing ground for a number of different approaches to link-cost calculation. The following discusses the evolution of the ARPANET routing metric and, in doing so, explores the subtle aspects of the problem. 
+
+The original ARPANET routing metric measured the number of packets queued waiting to be transmitted on each link, meaning a link with 10 packets queued was assigned a larger cost than a link with 5 packets queued. However, this method just moves the packet towards the shortest queue rather than toward the destination. Stated more precisely, the original ARPANET routing mechanism did not take bandwidth nor latency of the link into consideration.
+
+A second version takes both into consideration and used delay - rather than queue length - as a measure of load. This was done as follows:
+1. each incoming packet is timestamped with its time of arrival (*ArrivalTime*). It's deparature is also recorded *(DepartTime)*
+2. The link-level ACK is received from the other side. 
+3. The following is calculated, where TransmissionTime and Latency are statically defined: $$(DepartTime - ArrivalTime) + TransmissionTime + Latency$$
+Although an improvement, this still had a lot of problems. Under a light load, it worked reasonably well. Under a heavy load, a congested link would start to advetise a very high cost, causing all traffic to leave that link idle. It would then advertise a a low cost, and all the traffic would go back to that link. This instability actually led to a lot of links being idle. 
+
+Another problem was the range of link values was much too large. For example, a heavily loaded 9.6 Kbps link would look 127 times more costly than a lightly loaded 56-kbs link. That means the routing algorithm would choose a path with 126 hops of lightly loaded 56-kbps links in preference to a 1-hop 9.6 kbps path. 
+
+A third approach addressed these problems. The major changes were to compress the dynamic range of the metric considerably and to smooth the variation of the metric with time. 
+
+The smoothing was achieved by several mechanisms. First, the delay measurement was transformed to link utilization, and that number was average with the last reported utilization so suppress sudden changes. Second, there was a hard limit on how much the metric could change from one measurement cycle to the next. 
+
+For example, we could have the following rules:
+- a highly loaded link never shows a cost of more than three times its cost when idle
+- the most expensive link is only 7 times the cost of the least expensive
+- a high-speed satellite link is more attractive than a low-speed terrestrial link
+- cost is a function of link utilization only at moderate to high loads
+
+However, in the majority of real-world network deployments, metrics rarely change at all because conventional wisdom holds that dynamically changing metrics is too unstable. More significantly, many networks today lack the great disparity of link speeds and latencies that prevailed in the ARPANET. 
+![[Pasted image 20250306122008.png]]
+
+
+
+> [!NOTE] Key Takeaway
+> Why do talk about a decades old algorithm? Because it illustrates two lessons. The first is that computer systems are often *designed iteratively based on experience* and that it is better to deploy a simple solution sooner and expect to improve upon it later. The second is the KISS principle *(Keep it Simple, Stupid)*. Though having sophisticated optimizations are cool, the simplest solution is often the most robust. 
+
+# Implementation
+
+
