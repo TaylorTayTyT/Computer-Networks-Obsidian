@@ -552,3 +552,64 @@ However, in the majority of real-world network deployments, metrics rarely chang
 # Implementation
 
 
+So far, we have describes what switches and routers must do without describing how they do it. 
+
+This section gives an overview of both software-centric and hardware-centric designs. 
+
+## Software Switch 
+
+![[Pasted image 20250307110909.png]]
+
+The above shows a software switch built using a general-purpose processor with four network interface cards (NICs). For a path where information is received on NIC 1 and then transmitted on NIC 2, the following could happen:
+1. packets are received on NIC 1
+2. NIC 1 copites its bytes directly into the main memory of the I/O bus (PCIe in this example) using a technique called *direct memory access* (DMA). 
+3. The CPU examines the header to determine which interface the packet should be sent out on. 
+4. The CPU instructs NIC 2 to transmit the packet out of main memory.
+
+There are two bottlenecks with this approach. 
+
+The first is that all information must pass into and out of memory. The second is that if packets are short, the cost of processing each packet is likely to dominate and potentially become a bottleneck. 
+
+
+> [!NOTE] Key Takeaway
+> The distinction between these two kinds of processing is important enough to give it a name - the *control plane* is the background processing required to "control" the network (eg. running OSPF, RIP, etc) and the *data plane* corresponds to the per-packet processing required to move packets from input port to output port. 
+
+## Hardware Switch
+
+The hardware and software switches have shifted to become more open source. 
+
+![[Pasted image 20250307112237.png]]
+
+The above is a white-box switch. The difference between this and a general-purpose processor is the addition of a Network Processor Unit (NPU) - a domain-specific processor that has been optimized for packet headers. 
+
+The beauty of this new switch design is a white-box can now be programmed to be an L2 switch, an L3 router, or a combination of both. Exactly how one programs the NPU depends on the chip vendor.
+
+NPU takes advantage of three technologies. First, a fast SRAM (Static Random Access Memory)-based memory buffers packets. Then, a TCAM-based memory stores bit patterns to be matches in the packets being processed. The "CAM" means that the key you want to look up in the table can be used as the address into the memory, and the T stands for ternary. Finally, the processing involved to forward each packet is implemented by a forwarding pipeline.
+
+The benefit to having packet processing being implemented by a multi-stage pipeline is that though there is a latency for each stage, multiple packets can be processed at once. 
+
+## Software Defined Networks
+
+With switches becoming increasingly commoditized, attention is shifting to the software that controls them. This puts us in a tend of building *Software Defined Networks* (SDN).
+
+The idea behind SDN is to decouple the network control plane (where routing algorithms like RIP, OSSPF, etc run) from the network data plane (where packet forwarding decisions get made), with the former going into software running on commodity servers and the latter by white-box switches. The key idea enabling SDN is to define a standard interface between the control plane and the data plane. This breaks the dependency on any one vendor's bundled solution. 
+
+A key enabler for SDN's success is the Network Operating System (NOS), because it abstracts the details for the network switches and provides a *Network Map* to the application developer. This means that the app is free to simply implement the shortest path algorithm and load forwarding rules into underlying switches. 
+![[Pasted image 20250307113907.png]]
+
+> [!NOTE] Key Takeaway
+> SDN is an implementation strategy. Instead of switches having to exchange messages to each other, the logically centralized SDN controller is charged with collecting link and port status information from individual switches.
+
+# Perspective: Virtual Networks All the Way Down
+
+What does it mean to virtualize a network?
+
+Let's look at virtual memory as an example. Virtual memory creates an abstraction of a large and private pool of memory, though the physical memory may be partitioned by different applications. This allows programmers to operate under the illusion that there is plenty of memory. 
+
+Similarly, server virtualization presents the abstraction of a virtual machine that has all the features of a physical machine. 
+
+Virtualization lets users not interact with each other and preserves the abstractions and interfaces that existed before virtualization. 
+
+VLANs are typically how we virtualize and L2 network, and helps to isolate different internal groups while giving them the appearance of having their own private LAN. However, there was problem. The 4096 possible VLANs were not sufficient to account for all the tenants that a cloud might host, and in a cloud the network needs to connect *virtual machines* rather than the physical machines that those VMs run on. VXLAN (Virtual Extensible LAN) was made to fix this problem (too complicated to explain now). Essentially, though, we have a VLAN encapsulated in a VXLAN overlay encapsulate in a VLAN. 
+
+The hard part about virtual networks is the that networks are being nested inside networks (recursion). Another challenge is automating creation, management, etc of virtual networks. 
