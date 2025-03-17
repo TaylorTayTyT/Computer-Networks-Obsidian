@@ -59,3 +59,52 @@ Interdomain routing is also hard because of scale. The Internet backbone router 
 Furthermore, the autonomous nature of the domains means that it is impossible to calculate meaningful path costs for a path that crosses multiple AS since each domain has its own scheme for metrics. That means that a cost of 1000 may be acceptable to one AS, but not acceptable to another AS. Hence, interdomain routing advertises only reachability. 
 #### Basics of BGP
 
+Each AS has one or more *border routers* thrugh which packets enter and leave the AS. A border router is simply an IP router that is charged with the task of forwarding packets between ASs. 
+
+Each AS that participates in BGP must also have at least one BGP speaker, a router that "speaks" BGP to other BGP speakers in other ASs. 
+
+BGP does not belong to the two main classes of routing protocols: distance-vector nor link-state. Rather, BGP advertises *complete paths* as an eumerated list of ASs to reach a particular network. This is sometimes called a *path-vector* protocol. These complete paths allow for many policy decisions made in accordance with AS and also enables loops to be readily detected. 
+![[Pasted image 20250317112050.png]]
+
+We see this an action. Assume that providers are transit networks, while customer networks are stubs A BGP speaker for the AS of provider A would be able to advertise reachability information for each of the network numbers assigned to customers P and Q. 
+![[Pasted image 20250317112421.png]]
+
+An important job of the BGP is to prevent the establishment of loops. We look at the figure above. Suppose AS 1 learns that it can reach network 128.96 through AS 2. It advertises this to AS 3, who then advertises back to AS 2. Now, AS 2, for packets addressed to 128.96, might send the packet to AS3, which would then be sent to AS 1, which would then be sent to AS2, causing a loop. The solution to this would be if a router sees itself in a complete path, it knows it should not use that path. 
+
+Clearly, AS numbers need to be unique, and are assigned by a central authority to assure uniqueness. 
+
+An AS will only advertise routes that it considers good enough for itself, meaning it will only advertise the best route according to it s local policies. A BGP speaker, though, is not under any obligation to advertise a route, even if it has one. 
+
+Given that links fail and policies change, BGP speakers need to be able to cancel previous advertised paths. They do this with a negative advertisement known as a *withdrawn route*. Both positive and negative reachability information are carried in a BGP update message. 
+
+![[Pasted image 20250317113229.png]]
+
+Unlike the routing protocols described before, BGP is defined to run on to p of TCP, the reliable transport protocol. Because BGP speaker can rely on TCP, then CGP speakers only need to send an occasional *keepalive* message.
+
+#### Common AS Relationships and Policies
+
+The three common relationships and policies between ASs are:
+- *Provider-Customer* - Providers want to connect their customer to the rest of the Internet, so a common policy is to advertise all routes I know to the customer, and advertise all routes I learn from my customer to everyone. 
+- *Customer-Provider* - The customer want to get traffic directed to them, and wants to be able to send traffic to the Internet. A common policy would be to advertise my own prefixes and routes learned from my customer to my provider, advertise routers learned from my provider to my customers, but don't advertise routes learned from one provider to another. This is to make sure the customer doesn't find themselves in the business of carrying traffic from one provider to another.
+- *Peer* - Two providers who see themselves as equals usually peer to get access to each other's customers without having to pay another provider. The policy here is to advertise routes learned from customers to my peer, advertise routes learned from my peer to my customers, but don't advertise routes from my peer to any provider or vice versa. 
+![[Pasted image 20250317115553.png]]
+We can see that this figure gives us some structure to the Internet. At the bottom are stub networks, or customers of one or more providers. As we move up, we see providers who have other providers as their customers. At the very top are providers with only customers or peers. 
+
+
+> [!NOTE] Key Takeaway
+> How does all this help in building scalable networks? First, the number of ASs is much smaller than the number of networks. Second, a good interdomain route is finding a path to the right border route, of which there are only a few per AS. Hence, we are using hierarchy to subdivide our problem, and increase scalability. The complexity of interdomain routing is the number of ASs, and the intradomain is focused on a singular AS. 
+
+#### Integrating Interdomain and Intradomain Routing
+
+The question of how do all other routers in a domain get interdomain routing information remains. 
+
+Let's start simple. In the case of a sub AS that only connects to other ASs at a single point, the border router is the only choice for all routes outside the AS. Such a router is a *default route*. 
+
+The next step is to have border routers inject specific routes that they have learned from outside the AS. Consider, for example, the border router fo a provider AS that connects to a customer AS. The router could learn the network prefix 192.4.54/24 is located inside the customer AS, either through BGP or because the ifnormation is configured into the border router. It could inject a route to that prefix into the rougin protocol running inside the provider AS. This would be an advertisement of sort, and cause other routers in the provider AS that the border router is the place to send packets destined for that prefix. 
+
+Finally, the backbone networks. Because backbone networks receive so much routing information, it uses *interior BGP* or *iBGP* to navigate through this information. iBGP enables any router in the AS to learn thebest border router to use when sending a packet to any address. At the same time, each router knows how to get to each border router using a conventional intradomain protocol with no injected information.
+![[Pasted image 20250317121740.png]]
+
+
+![[Pasted image 20250317121804.png]]
+# IPV6

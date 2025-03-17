@@ -67,12 +67,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Chapter 3 Advanced Internetworking.md",
+                "file": "Chapter 4 Advanced Internetworking.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Chapter 3 Advanced Internetworking"
+              "title": "Chapter 4 Advanced Internetworking"
             }
           }
         ],
@@ -195,13 +195,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Chapter 3 Advanced Internetworking.md",
+                "file": "Chapter 4 Advanced Internetworking.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Chapter 3 Advanced Internetworking"
+              "title": "Outline of Chapter 4 Advanced Internetworking"
             }
           }
         ],
@@ -223,20 +223,20 @@
   },
   "active": "42e8a0f71a87639d",
   "lastOpenFiles": [
+    "Pasted image 20250317121804.png",
+    "Pasted image 20250317121740.png",
+    "Pasted image 20250317115553.png",
+    "Pasted image 20250317113229.png",
+    "Pasted image 20250317112421.png",
+    "Pasted image 20250317112050.png",
+    "Chapter 3 Internetworking.md",
+    "Chapter 4 Advanced Internetworking.md",
     "Pasted image 20250310114823.png",
     "Pasted image 20250310113547.png",
     "Pasted image 20250310111916.png",
     "Pasted image 20250310110818.png",
     "assets/Pasted image 20250307113907.png",
-    "Chapter 3 Advanced Internetworking.md",
     "Chapter 3 Advanced Internetworking",
-    "Chapter 3 Internetworking.md",
-    "assets/Pasted image 20250307112237.png",
-    "assets/Pasted image 20250307110909.png",
-    "assets/Pasted image 20250306122008.png",
-    "assets/Pasted image 20250306111525.png",
-    "assets/Pasted image 20250306113625.png",
-    "assets/Pasted image 20250306112933.png",
     "Chapter 2 Direct Links.md",
     "assets/Computer Networks.pdf",
     "assets",
