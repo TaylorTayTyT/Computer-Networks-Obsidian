@@ -108,3 +108,79 @@ Finally, the backbone networks. Because backbone networks receive so much routin
 
 ![[Pasted image 20250317121804.png]]
 # IPV6
+
+The motivation for IPV6 is to deal with the exhaustion of the IP address space. 
+## Historical Perspective
+
+Since the IP address is carried in every packet, changing the size of this address is no small nor simple matter. 
+
+Since changing the IP address is so huge, network designers decided that they might as well change other things as well, including: 
+
+- Support for real-time services
+- Security support
+- autconfiguration
+- enhanced routing functionality, including support for mobile hosts
+
+Although these were features meant to be introduced in IPV6, they have made their way into IPV4. In addition, they anticipated the this transition would be quite gradual, though few anticipated that the transition would be reaching it's third decade of transitioning. 
+
+## Addresses and Routing
+
+IPv6 includes a 128-bit address space. This means that there will be over 1500 adresses per square foot of Earth's surface. 
+
+### Address Space Allocation
+
+IPv6 does not use classes, but does have way to subdivide address space based on the first bits. 
+
+![[Pasted image 20250318111806.png]]
+
+The "everything else" category includes all the IPv4's three main address classes. 
+
+The idea behind link-local use addresses is to enable a host to construct an address that will work on the network to which it is connected without being concerned about the global uniqueness of the address. 
+
+#### Address Notation
+
+The standard represnetation of IPv6 is x:x:x:x:x:x:x:x.
+
+IPv6 can be shortened in a number of ways. For example, an address with a large number of contiguous zeros can be more compactly written by omitting the zeros. For example, 
+
+47CD:0000:0000:0000:0000:0000:A456:0124
+
+can be written as 
+
+47CD::A456:0124
+
+IPv6 addresses with an embedded IPv4 address have their own special notation. For example, 128.96.33.81 could be written as ::FFFF:128.96.33.81.
+
+#### Global Unicast Addresses
+
+The most important sort of addressing in IPv6 is plain old unicast addressing. It must do this in a way that supports the rapid rate of addition of new hosts to the Internet and that routing is done in a scalable way. 
+
+To help us understand how this is done, we introduce some new terms. We can think of a nontransit AS (i.e. a stub or multihomed AS) as a *subscriber* and we may think of a transit AS as a *provider*. Furthermore, we may divide providers into *direct* and *indirect*. The former is connected to subscribers. The latter is often known as *backbone networks*.
+
+With this set of definitions, we can see the Internet as intrinsically hierarchical. The difficulty is using this hierarchy without inventing mechanisms that fail when the hierarchy is not strictly observed, such as when the distinction between direct and indirect provider becomes blurred. 
+
+Like CIDR, IPv6 allocation plan wants to provide aggregation of routing information to reduce the burden on intradomain routers. Again, the idea is to use an address prefix to aggregate reachability information to a large number of networks and ASs. The main way to achieve this is to assign an address prefix to a direct provider, and have that provider handles its subscribers. 
+
+The drawback is that if a site decides to change providers, it will need to obtain a new address prefix and renumber all nodes in the site, which is super annoying. There is research about other addressing schemes - like geographic addressing, where a site's address is a function of its location. For now, though, we have provider-based addressing. 
+
+One place where aggregation makes sense is at the national or continental level. If all addresses in Europe, for example, had a common prefix, then a great deal of aggregation could be done. 
+
+A tricky solution occurs when a subscriber is connected to more than one provider. Which prefix should the subscriber use for his or her site? Suppose a subscriber is connected to two providers, X and Y. If the subscriber takes the prefix from  X, then Y has to advertise a prefix with no relationship to its other subscribers and therefore cannot be aggregate. If we split the prefix between X and Y, if one site goes down then half a user's site may go down if the connection to one provider goes down. One solution is that if X and Y have many customers, then they can agree on a prefix they will share. 
+
+## Packet Format
+
+Despite that IPv6 extends IPv4, its header format is actually simpler due to a concerted effort to remove unnecessary functionality from the protocol. 
+
+![[Pasted image 20250320114424.png]]
+
+As with many headers, this one starts with a *Version* field, which is set to 6. The *PayloadLen* gives the length of the packet in bytes. The *NextHeader* field replaces required options and special headers. 
+
+Finally, the bulk of the header is taken up with the source and destination addresses, each of which are 16 bytes long. Hence, an IPv6 header is always 40 bytes lings. 
+
+The way that IPv6 handles options is quite an improvement over IPv4. Previously, options were a mess at the end that routers had to completely parse through to find relevant information. Now, IPv6 treats options as extension header that must appear in a specific order, making it easy to determine relevant options. 
+
+Each option has its own type of extension header. The type is identified by the *NextHeader* field in the header that preceded it, and each extension headers contains a *NextHeader* field to identify the header following it. The extension header serves as a demux key to identify the higher-layer protocol running over IPv6.
+
+![[Pasted image 20250320115833.png]]
+
+## Advanced Capabilities

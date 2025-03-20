@@ -43,7 +43,7 @@ The Ethernet is said to be a *1-persistent* protocol because an adaptor with a f
 
 For Ethernet, it is possible for two adaptors to transmit at the same time, and this is when frames collide. At the moment an adaptor detects that its frame has collided, it sends a jamming sequence to stop transmission.
 
-If the hosts are close to each other, the adaptor will send only 96 bits - called a *runt frame*, but in the worst case scenario a transmitter may need to send as many as 512 bits. Why 5112 bits? This has to do with the fact that the farther two nodes are apart, the longer it takes for frames to arrive, and at this time the network is vulnerable to collision. 
+If the hosts are close to each other, the adaptor will send only 96 bits - called a *runt frame*, but in the worst case scenario a transmitter may need to send as many as 512 bits. Why 512 bits? This has to do with the fact that the farther two nodes are apart, the longer it takes for frames to arrive, and at this time the network is vulnerable to collision. 
 
 ![[Pasted image 20250123114947.png]]
 Once an adaptor has detected a collision and stops transmission, it waits and then tries again. Each time it fails, the adaptor doubles the amount time it waits. This is known as *exponential backoff*. Actually what happens, is the algorithm selects a *k* between 0 and $2^n - 1$ and waits $k \times 51.2\micro s$ , where *n* is the number of collisions experienced so far. Adaptors typically retry up to 16 times. 
@@ -53,6 +53,10 @@ Once an adaptor has detected a collision and stops transmission, it waits and th
 There are some properties that explain why the Ethernet has persisted. 
 
 First, the Ethernet is easy to administer and maintain. It's plug and play. Second, it is inexpensive - the only costs are the cable/fiber and the network adaptor. 
+
+
+> [!NOTE] Summary
+> Ethernet uses transceivers and physical lines to transmit packets. It has a collision detection algorithm that attempts to send data in variable time periods. 
 
 # Wireless Networks
 
