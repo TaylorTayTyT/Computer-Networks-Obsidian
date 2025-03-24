@@ -184,3 +184,29 @@ Each option has its own type of extension header. The type is identified by the 
 ![[Pasted image 20250320115833.png]]
 
 ## Advanced Capabilities
+
+The primary motivation behind IpV6 is to support the continued growth of the Internet. Since changing the header is itself a huge undertaking, IPv6 includes a large number of other improvements as well. It should be noted that IPv4, itself, has come to include many of these improvements. 
+
+#### Autoconfiguration
+
+While Internet growth has been impressive, the fact that getting connected to the Internet requires a fair amount of system administration expertise - in particular, that every host needs to be configured with a certain minimum amount of information, like a valid IP address, a subnet mask, and the address of a name server. IPv6 is meant to autoconfigure. 
+
+With IPv4, autoconfiguration was possible but required a central server. With IPv6, a server is not required. 
+
+Recall that IPv6 unicast addresses are hierarchical, and the least significant portion is the interface ID. Thus, we can subdivide the autoconfiguration problem into two parts:
+1. obtain an interface ID unique on the link to which the host is attached. 
+2. Obtain the correct address prefix for this subnet.
+
+The first part turns out to be easy, since every host on a link must have a unique link-level address. 
+
+#### Source-Directed Routing
+
+IPv6 also has a routing header. This header contains a list of addresses that represent nodes or topological areas that the packet should visit en route to its destination - like a backbone provider. To specify topological entities rather than individual nodes, IPv6 defines an *anycast* address. An anyc ast addressed is assigned to a set of interfaces, and packets sent to that address will go to the 'nearest' of those interfaces. 
+
+# Multicast
+
+In situation when once host want to send the same data to multiple recipients, then typical IP communication where each packet is addressed to only one host, which we call *unicast* , is not suitable. The basic IP multicast modeal is a many-to-many model based on multicast *groups*, where each group has its own *mulitcast address*. Members of a group receive copies of packets sent to a multicast address. Using IP multicast, in comparison to unicast IP, is more scalable because it reduces redundancy in how many packet that would have been sent. 
+
+IP's original many-to-many multicast has been supplemented with support for a form of one-to-many mulitcast, called the *Source-Specific Multicast* (SSM) - where a receiving host specifies both a multicast group and a specific sending host. The receiving hsot would then receive multicasts addressed to the specific group, but only if they are from the specified sender. IP's original many-to-many model is sometimes referred to as *Any Source Multicast* (ASM). 
+
+A host signals its desire to leave a multicast group by communicating with the local router using a special protocol. In IPv4, that protocol is the *Internet Group Management Protocol* (IGMP); in IPv6, it is *Mulitcast Listener Discovery* (MLD). The router then has the responsibility to behave correctly. If a host fails to leave a multicast group when it should, the router periodically polls the network to determine which groups are still of interest to the attached hosts. 
