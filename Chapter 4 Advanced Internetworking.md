@@ -210,3 +210,32 @@ In situation when once host want to send the same data to multiple recipients, t
 IP's original many-to-many multicast has been supplemented with support for a form of one-to-many mulitcast, called the *Source-Specific Multicast* (SSM) - where a receiving host specifies both a multicast group and a specific sending host. The receiving hsot would then receive multicasts addressed to the specific group, but only if they are from the specified sender. IP's original many-to-many model is sometimes referred to as *Any Source Multicast* (ASM). 
 
 A host signals its desire to leave a multicast group by communicating with the local router using a special protocol. In IPv4, that protocol is the *Internet Group Management Protocol* (IGMP); in IPv6, it is *Mulitcast Listener Discovery* (MLD). The router then has the responsibility to behave correctly. If a host fails to leave a multicast group when it should, the router periodically polls the network to determine which groups are still of interest to the attached hosts. 
+
+## Multicast Addresses
+
+Multicast addresses have a reserved space in IPv4 and IPv6. In IPv4, there are 28 bits of possible multicast addresses, which presents a problem when trying to take advantage of hardware multicasting on a local area network. 
+
+Lets take the example of the Ethernet. Ethernet multicast addresses only have 23 bits when we ignore their shared prefix. Thus, in order to take advantage of Ethernet multicasting, IP has to map 28 bits IP multicast addressing into 23 bit multicast addressing. This is done by ignoring the high-order 5 bits. 
+
+When a host on an Ethernet joins an IP multicast group, it configures its Ethernet interface to receive any packets with the corresponding Ethernet multicast address. Unfortunately, this causes the receiving host to receive not only the multicast traffic it desired but also traffic sent to any of the other 31 multicast groups that map to the same Ethernet address (since we have to map from big to small). Hence, the receiving host must examine the IP header of any multicast packet to determine whether the packet really belongs to the desired group. There are some switched networks where the switches can recognize unwanted packets. 
+
+## Multicast Routing
+
+A router must have multicast forwarding tables that indicate links - possibly more than one - to forward the multicast packet (possibly duplicating the packet over multiple links). Thus, instead of a table that specify a set of paths like unicast routing, multicast specify a set of trees: *multicast distribution trees*. To support Source-Specific Multicast, the multicast forwarding tables must indicate which link to use based on the multicast address and the unicast IP address of the source, against specifying a set of trees. 
+
+To be specific, multicast routing is the process by which the multicast distribution trees are determined the process by which the multicast forwarding tables are built. 
+
+### DVMRP
+
+Distance-vector routing used in unicast can be expanded to multicast. The resulting protocol is called *Distance Vector Multicast Routing Protocol*, or DVMRP. DVMRP is a *flood and prune* protocol, where a packet is forwarded to all networks on the Internet, and then is pruned to have only hosts that belong to the multicast group. 
+
+There are two major shortcomings. The first is that it truly floods the network. The second is that a given packet will be forwarded over a LAN by each of the routers connected to that LAN. 
+
+The solution to the second limitation is to eliminate the duplicate broadcast packes generate when more than one router is connected to a given LAN. One way to do this is to designate one router as the *parent* router for each link - relative to the source - where only the parent router is allowed forward multicast packets from that source over the LAN. This mechanism is called the *Reverse Path Broadcast* (RPB) or *Reverse Path Forwarding* (RPF). It is reverse because we are considering the shortest path toward the *source* when making forwarding decisions, rather than to a destination. 
+
+The RPB mechanism described implements a shortest path broadcast. We want to prune the set of networks that receives each packet addressed to group G to exclude those who have no hosts that are members of G. This is done in two stages. We have to recognize when a *leaf* network has no group members. Then, we have to propagate a "no members of G" here information up the shortest-path tree. 
+
+Note that this is quite expensive to do, and in practice information is only exchanges when some source starts sending packets to that group. 
+
+### PIM-SM
+
