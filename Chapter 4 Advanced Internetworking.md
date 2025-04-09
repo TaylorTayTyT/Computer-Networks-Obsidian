@@ -239,3 +239,95 @@ Note that this is quite expensive to do, and in practice information is only exc
 
 ### PIM-SM
 
+*Protocol Independent Multicast* - **PIM** - was developed in recognition of scaling problems. For example, broadcasting traffic to all routers until they explicitly ask to be removed is not a good choice if most routers don't want the traffic in the first place. Hence, PIM divides the problem space into *sparse mode* and *dense mode*. PIM dense mode (PIM-DM) uses a flood-and-prune algorithm that suffers in scalability. PIM sparse mode (PIM-SM) has become the dominant multicasting routing protocol, and will be our central topic. 
+
+In PIM-SM, routers explicitly join the multicast distribution tree using PIM protocol messages known as *Join* messages. The question is where to send those *Join* messages, since any host could send to the multicast group. PIM-SM assigns each group a special router known as the *rendevous point* (RP). A number of routers are configured to be candidate RPs, and PIM-SM decides which router to use as the RP for a given group.  
+
+When a router sends a *Join* message, it is sent using a normal IP unicast transmission. The intitial *Join* message is "*wildcarded*" - it applies to all senders. Each router along the path of this packet creates a forwading table entry for the shared tree, called a (\*, G) entry. Eventually, the shared tree will have a solid line from RP to R4. 
+
+As more routers send *Join*s toward the RP, it causes new branches to be added.
+
+![[Pasted image 20250331112731.png]]
+Suppose a host wishes to send a message to the group. To do so, it sends a packet with the appropriate mulitcast froup address as its address and then sends it to a router on its local network known as the *designated router* (DR). This DR *tunnels* the packet to the RP, and on receiving the packet, will send it out onto the shared tree, of which the RP is the root. 
+![[Pasted image 20250331113203.png]]
+
+However, tunneling is not the most efficient. Instead, the RP could send a *Join* message toward the sending host, and as this *Join*message travels toward the host, it causes to router along the path to learn about the group, making it possible for the DR to send the packet to the group as *native* (not tunneled multicast) packets. Because this *Join* is specific to the sender, we indicate this route as a source-specific route.
+
+PIM is protocol dependent because it does not depend on any particular routing protocol. However, PIM is very much bound up with IP - it is not protocol independent in terms of network-layer protocols. 
+
+### Interdomain Multicast (MSDP)
+
+PIM-SM does have some significant shortcomings. In particular, the existence of a single RP for a group goes again the principle that domains are autonomous. For a given multicast froup, all the participating domains would be dependent on the domain where the RP is located. Hence, PIM-SM is typically only used within a domain. 
+
+The Multicast Source Discovery Protocol (MSDP) was devised to multicast across domains. It is used to connected different domain - each running PIM-SM internally - by connecting the RPs of the different domains. Each RP has one or more MSDP peer RPs in other domains. Each pair is connected by a TCP connection over which the MSDP protocols runs. Together, all the MSDP peers form a loose mesh called a broadcast network. MSDP messages are broadcast through the mesh of peer RPs using the Reverse Path Broadcast algorithm. 
+
+Source information is sent through this mesh of RPs. 
+
+![[Pasted image 20250331120020.png]]
+
+If an MSDP peer RP receives one of these broadcasts has active receivers for that multicast group, it sends a source-specific *Join* to the source host. The *Join* adds a branch of the source-specific tree to this RP. The result is that every RP part of the MSDP network and has active receivers for a particular multicast group is added tot he source-specific tree of the new source. 
+
+### Source-Specific Multicast (PIM-SSM)
+
+The original service model of PIM was a many-to-many model. It was recognized in the late 1990s that it might be useful to add a one-to-many model. After all, lots of multicast applications only have one legitimate sender. In the original PIM design, only routers joined source-specific trees. However, once the need for a one-to-many service model was recognized, it was decided to make the source-specific routing capability of PIM-SM available to hosts. This newly exposed capability is now known as PIM-SSM (PIM Source-Specific Multicast). 
+
+PIM-SSM introduces a new concept, the *channel*, which is a combination of a source address S and a group address G. G looks like a normal IP multicast address. To use PIM-SSM, a host specifies both the group and the source in an IGMP Membership Report message to its local router. The router then sends a PIM-SM source-specific *Join* message toward the source, thereby adding a branch to itself in the source-specific tree, bypassing the whole shared tree stage. Since the tree is source specific, only the designated source can send packets on that tree. 
+
+The introduction of PIM-SSM has provided some significant benefits: 
+- multicasts travel more directly to receivers
+- the address of a channel is effectively a multicast group address plus a source address, so multiple domains can use the same multicast group address independently and without conflict, as long as they use it only with sources in their own domains. 
+- because the specified source only can send to an SSM group, there is less risk of attacks based on malicious hosts overwhelming the routers or receivers with bogus multicast traffic.
+- PIM-SSM can be used across domain exactly as it is used within a domain, without reliance on anything like MSDP.
+#### Bidirectional Trees (BIDIR-PM)
+
+BIDIR-PIM is a recent variant of PIM-SM that is well suited to many-to-many multicasting within a domain, especially when senders and receivers to a group may be the same, like in a multiparty video conference. Like in PIM-SM, would-be receivers join the group by send IGMP (which must not be source specific) and a shared tree rooted at an RP is used to forward multicast packets to receivers. Unlike PIM-SM, the shared tree also has branches to the *sources* since it is bidirectional.
+![[Pasted image 20250402121621.png]]
+For example, in 4.17(b) R4 forwards a multicast packet downstream to R2 at the same time that it forwards a copy of the same packet upstream to R5. 
+
+A surprising  apsect of BIDIR-PIM is that a RP is not needed. All that is needed is a routable address, which is known as an RP address even though it need not be the address of an RP or anything at all. For example, 4.17(a) shows a *Join* from R2 terminating at R5, and a *Join* from R3 terminating at R6. The upstream forwarding of a multicast packet similarly flows toward the RP address until it reaches a router with an interface on the link where the RP address would reside, but then the router forwards the mulitcast packet onto that link as the final step of upstream forwarding, ensuring that all other routers on that link receive the packet. 
+
+BIDIR-PIM cannot be used across domains, but has many advantages over PIM-SM for many-to-many mulitcast within a domain:
+- there is no source registration process because router already know how to route a mulitcast packet toward the RP address. 
+- The routes are more direct because they go only up the tree as far as necessary
+- they use less state the source specific trees of PIM-SM because there is never any source-specific state.
+- The RP cannot be a bottleneck
+# Multiprotocol Label Switching
+
+The *Multiprotocol Label Switching* (MPLS) combines some of the properties of virtual circuits with the flexibility and robustness of datagrams. On one hand, MPLS is very much associated with the IP's datagam, on the other, MPLS-enabled routers also forwards packets by examining relatively short, fixed-length labels, and these labels have a local scope, like in a virtual circuit network. 
+
+There are three main things MPLS is used for: 
+- To enable IP capabilities on devices that do not have the capability to forward IP datagrams in a normal manner
+- to forward IP packets along explicit routes
+- to support certain types of VPN services
+
+## Destination-Based Forwarding
+![[Pasted image 20250409110700.png]]
+
+Consider the figure above. Each of the routers on the far right has one connected network. The remaining router (R1 and R2) have routing tables indicating which ougoinginterface each router would use when forwarding packets to one of those two networks. 
+
+When MPLS is enabled on a router, the router allocates a label for each prefix in its routing table and advertise both label and prefix to its neighboring routers. This advertisement is carried in the Label Distribution Protocol. 
+![[Pasted image 20250409111135.png]]
+
+(4.19)
+
+R2 has allocated the label value 15 for the prefix 18.1.1 and 16 for the prefix 18.3.3. After allocating the labels, R2 advertises the label bindings to its neighbors, so we see R2 advertising a binding between the label 15 and the prefix 18.1.1 to R1. In effect, R2 has said: "Please attach the label 15 to all packets sent to me that are destined to prefix 18.1.1."
+
+Hence, when we send packets out, many routers only look at labels and send out packets in accordance to other labels. What's the point of this? 
+
+We are replacing a normal IP destination address lookup with a label lookup. This is helpful because IP address lookup algorithm needs to find the *longest match*, whereas a label forwarding mechanism is an exact match algorithm. 
+
+MPLS label is associated with a *forwarding equivalence class* (FEC) - a set of packets set to receive the same forwarding treatment in a particular router. In this example, each prefix in the routing table is an FEC - that is, all packets that match the prefix 18.1.1 get forwarded along the same path. 
+
+Changing the forwarding algorithm from normal IP forwarding to label swapping has an important consequence: Devices unable to forward IP packets - like ATM switches - can be used to forward IP traffic in an MPLS network by being turned into *Label Switching Routers* (LSRs). 
+
+Before we consider the benefits of turning an ATM switch into an LSR, we should tie up loose ends. Labels are attached to packets, but the type of link in which the packets are carried changes what we mean by this. 
+![[Pasted image 20250409120710.png]]
+When IP packets are carries as complete frames - like in Ethernet and PPP - the label is inserted as a "shim" between the layer 2 header and the IP header. If an ATM switch is to function as an MPLS LSR, then the label is in the ATM cell header, where the VCI and VPI usually is. 
+
+Now we can built a network using a mixture of conventional IP routers, label edge routers, and ATM switches functioning as LSRs that all use the same routing protocols.
+![[Pasted image 20250409121113.png]]
+We can see that the benefits of have LSRs is that routers have fewer adjacencies (meaning routing neighbours)  and that edge routers have a full view of the topology og the network. 
+
+Note that replacing ATM switches is done purely by switching protocol - no hardware change need be done. 
+
+## Explicit Routing

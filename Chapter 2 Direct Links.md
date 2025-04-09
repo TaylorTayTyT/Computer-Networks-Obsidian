@@ -198,3 +198,12 @@ This description of sceduling radio spectrum is specific to 4G. Transitioning fr
 Softwarization is radically transforming the network. Meany of the fiber-to-the-home and cellular networks described are from complex hardware appliances that have a bundled set of functionality, making them slow to change. 
 
 In response, network operators are transitioning to appliean with open software running on commodity services, switches, and access devices. This initiative is called CORD. 
+
+
+> [!NOTE] Summary
+> **In Wireless Networks,** devices have to share a spectrum that radiate outward to every device. Typically, there is a base station that has a wired connection to the Internet. The two main wireless technologies: 802.11/Wi-Fi and Bluetooth. 
+> **Wi-Fi uses handles collisions** using CSMA/CA. Using this protocol, the receiver has to send a ACK back to the sender, and - optionally - has a mechanism called RTS-CTS (Ready to Send - Clear to Send) where a receiver on receiving a short packet called a RTS will send a packet called to CTS telling all surrounding nodes that it will be busy and to wait after its is free to send packets. 
+> **Most Wi-Fi technology** uses a distribution system, where hosts actively find a access point that connects the host to Wi-Fi.
+> **In a Passive Optical Network (PON)**, the network is structured as a tree, with the ISP as the root, fanning out up to 1024 homes. 
+> **Cellular networks transmit data at certain** bandwidths in the radio spectrum. Like Wi-Fi, cellular networks rely on base stations called Broadcast Base Units (BBU). Long term evolution(LTE)'s main innovation is the Orthogonal Frequency Division Multiple Access (OFDMA) which conceptualizes the radio spectrum. Transitioning from 4G to 5G introduces degrees of freedom in which the radio spectrum is scheduled. 
+

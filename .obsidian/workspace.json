@@ -8,75 +8,20 @@
         "type": "tabs",
         "children": [
           {
-            "id": "3274f12c5bfcd80a",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Chapter 3 Internetworking.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Chapter 3 Internetworking"
-            }
-          },
-          {
-            "id": "e414a9a646864238",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Chapter 3 Internetworking.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Chapter 3 Internetworking"
-            }
-          },
-          {
-            "id": "eeed17baf4c47eb2",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Chapter 3 Internetworking.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Chapter 3 Internetworking"
-            }
-          },
-          {
-            "id": "21542c071bee4580",
-            "type": "leaf",
-            "state": {
-              "type": "image",
-              "state": {
-                "file": "assets/Pasted image 20250307113907.png"
-              },
-              "icon": "lucide-image",
-              "title": "Pasted image 20250307113907"
-            }
-          },
-          {
             "id": "42e8a0f71a87639d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Chapter 2 Direct Links.md",
+                "file": "Chapter 4 Advanced Internetworking.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Chapter 2 Direct Links"
+              "title": "Chapter 4 Advanced Internetworking"
             }
           }
-        ],
-        "currentTab": 4
+        ]
       }
     ],
     "direction": "vertical"
@@ -195,13 +140,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Chapter 2 Direct Links.md",
+                "file": "Chapter 4 Advanced Internetworking.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Chapter 2 Direct Links"
+              "title": "Outline of Chapter 4 Advanced Internetworking"
             }
           }
         ],
@@ -209,7 +154,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -223,19 +168,20 @@
   },
   "active": "42e8a0f71a87639d",
   "lastOpenFiles": [
-    "Chapter 4 Advanced Internetworking.md",
+    "Pasted image 20250409121113.png",
+    "Pasted image 20250409120710.png",
+    "Pasted image 20250409111135.png",
+    "Pasted image 20250409110700.png",
     "Chapter 3 Internetworking.md",
     "Chapter 2 Direct Links.md",
-    "Pasted image 20250320115833.png",
-    "Pasted image 20250320114424.png",
+    "assets/Pasted image 20250402121621.png",
+    "assets/Pasted image 20250320114424.png",
+    "Chapter 4 Advanced Internetworking.md",
+    "assets/Pasted image 20250331120020.png",
+    "assets/Pasted image 20250331113203.png",
+    "assets/Pasted image 20250331112731.png",
+    "assets/Pasted image 20250320115833.png",
     "assets/Pasted image 20250310110818.png",
-    "assets/Pasted image 20250318111806.png",
-    "assets/Pasted image 20250317121804.png",
-    "assets/Pasted image 20250317121740.png",
-    "assets/Pasted image 20250317115553.png",
-    "assets/Pasted image 20250317113229.png",
-    "assets/Pasted image 20250317112421.png",
-    "assets/Pasted image 20250317112050.png",
     "Chapter 3 Advanced Internetworking",
     "assets/Computer Networks.pdf",
     "assets",
