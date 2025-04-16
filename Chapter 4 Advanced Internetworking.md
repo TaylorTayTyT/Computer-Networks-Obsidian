@@ -331,3 +331,22 @@ We can see that the benefits of have LSRs is that routers have fewer adjacencies
 Note that replacing ATM switches is done purely by switching protocol - no hardware change need be done. 
 
 ## Explicit Routing
+
+IP has a source routing option, but it is not widely used. 
+
+MPLS provides a convenient way to add something similar to source-routing, often referred to as *explicit routing*. 
+
+![[Pasted image 20250416092418.png]]
+
+Suppose that the operator of the network has determined that any traffic flowing from R1 to R7 should follow the path R1-R3-R6-R7 and that traffic going from R2 to R7 should follow the path R2-R3-R4-R5-R7. These are two separate equivalence classes. 
+
+Because MPLS uses label swapping to forward packets, we can achieve the desired routing if routers are MPLS enabled. 
+
+With labels, we can specify packets as being in different FECs. How do all routers agree which labels to use? We use the Resource Reservation Protocol (RSVP) for this. We send an RSVP message along an explicitly specified path to set up routing tables, very similar to a virtual circuit. 
+
+One application of explicit routing is *traffic engineering*, which refers to the task of ensuring sufficient resources are available on a network to meet the demands placed on it. To this extent, controlling the path traffic flows is extremely important, and can make networks more resilient in the face of failure, using *fast reroute*. 
+
+Explicit routes do not need to be calculated by a network operator. Routers can use various algorithms to calculate explicit routes automatically. 
+
+## Virtual Private Networks and Tunnels
+
